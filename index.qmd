@@ -1,0 +1,229 @@
+---
+title: "Escala Brasileira de Insegurança Alimentar"
+date: today
+---
+
+
+
+# Data Source and Identification of Food Insecurity Variables
+
+## About PNAD Continuous
+
+The Continuous National Household Sample Survey (PNAD Continuous) is a nationwide household survey conducted by the Brazilian Institute of Geography and Statistics (IBGE). It provides information on demographic, social, and economic characteristics of the Brazilian population.
+
+More information about the survey is available at:
+
+* https://www.ibge.gov.br/estatisticas/sociais/saude/17270-pnad-continua?=&t=o-que-e
+
+## Accessing the Documentation
+
+To identify food insecurity variables, we accessed the PNAD Continuous microdata page:
+
+* https://www.ibge.gov.br/estatisticas/sociais/saude/17270-pnad-continua?=&t=microdados
+
+Within the **Concentrados em determinado trimestre** section, the following documents were consulted:
+
+* `LEIA-ME.pdf`
+* `PNADC_Pesquisas_Suplementares_Anuais_20260508.pdf`
+
+To identify the variables included in the Food Security module, we then accessed:
+
+**Trimestre_4 → Documentação**
+
+and consulted:
+
+* `dicionario_PNADC_microdados_trimestre4_20251010.xls`
+
+## Food Security Module
+
+According to the supplementary survey documentation, the Food Security module was collected only in the fourth quarter of:
+
+| Year |
+| ---- |
+| 2023 |
+| 2024 |
+
+The module corresponds to the Brazilian Food Insecurity Scale (EBIA) and includes 14 questions related to household experiences of food insecurity during the previous three months.
+
+The questionnaire variables are:
+
+* `S17001`–`S17004`: questions asked in all households.
+* `S17005`–`S17008`: additional questions for households with adults (18+ years).
+* `S17009`–`S17014`: additional questions for households with children or adolescents (0–17 years).
+
+Responses are coded as:
+
+* 1 = Yes
+* 2 = No
+
+## Official Food Insecurity Variable
+
+In addition to the individual questionnaire items, IBGE provides a derived variable containing the final food security classification:
+
+| Variable | Description                    |
+| -------- | ------------------------------ |
+| SD17001  | Household food security status |
+
+Categories:
+
+| Code | Classification           |
+| ---- | ------------------------ |
+| 1    | Food security            |
+| 2    | Mild food insecurity     |
+| 3    | Moderate food insecurity |
+| 4    | Severe food insecurity   |
+
+For most analyses, `SD17001` can be used directly, as it contains the official EBIA classification produced by IBGE.
+
+## Using the `PNADcIBGE` R Package
+
+The `PNADcIBGE` package provides direct access to official PNAD Continuous microdata from IBGE.
+
+The package is available on CRAN:
+
+* https://CRAN.R-project.org/package=PNADcIBGE
+
+The package can be used to download and import PNAD Continuous datasets directly into R.
+
+
+
+```{r}
+#| label: Clean environment
+#| code-summary: Clean environment
+
+# Remove all objects from the current R session
+rm(list = ls())
+```
+
+```{r}
+#| label: Packages
+#| code-summary: Packages
+#| message: false
+#| warning: false
+
+# Install and load required packages
+pacman::p_load(
+  PNADcIBGE,
+  survey,
+  dplyr,
+  tidyr,
+  ggplot2
+)
+```
+
+```{r}
+#| label: Session info
+#| code-summary: Session info
+
+# Check package versions
+packageVersion("PNADcIBGE")
+packageVersion("survey")
+```
+
+```{r}
+#| label: Get Pnadc Help
+#| code-summary: Get Pnadc Help
+
+# Open the documentation for get_pnadc()
+?get_pnadc
+```
+
+```{r}
+#| label: Download Data
+#| code-summary: Download Data
+
+# Download PNAD Continuous data for the 4th quarter of 2023
+pnad_2023 <- get_pnadc(
+  year = 2023,
+  topic = 4,
+  design = FALSE
+)
+
+# Download PNAD Continuous data for the 4th quarter of 2024
+pnad_2024 <- get_pnadc(
+  year = 2024,
+  topic = 4,
+  design = FALSE
+)
+```
+
+```{r}
+#| label: Inspect Objects
+#| code-summary: Inspect Objects
+
+# Display the structure of the downloaded objects
+str(pnad_2023, max.level = 1)
+str(pnad_2024, max.level = 1)
+```
+
+```{r}
+#| label: Search Food Security Variables
+#| code-summary: Search Food Security Variables
+
+# Search for food security variables
+list(
+  "2023" = grep(
+    "^S17|^SD17",
+    names(pnad_2023),
+    value = TRUE
+  ),
+  "2024" = grep(
+    "^S17|^SD17",
+    names(pnad_2024),
+    value = TRUE
+  )
+)
+```
+
+
+
+
+
+
+
+
+## Historical Data Source: National Household Sample Survey (PNAD)
+
+Before the implementation of PNAD Continuous, IBGE conducted the National Household Sample Survey (PNAD), an annual household survey that collected demographic, social, and economic information on the Brazilian population.
+
+More information about the survey is available at:
+
+* https://www.ibge.gov.br/estatisticas/sociais/populacao/9127-pesquisa-nacional-por-amostra-de-domicilios.html?=&t=o-que-e
+
+The annual PNAD was discontinued in 2016 and replaced by PNAD Continuous. However, historical PNAD microdata remain available and are frequently used for long-term analyses and historical comparisons.
+
+For studies on food insecurity, the PNAD is particularly relevant because the EBIA was collected in selected survey rounds, including 2004, 2009, and 2013.
+
+## Accessing PNAD Microdata
+
+Historical PNAD microdata can be accessed through:
+
+* https://www.ibge.gov.br/estatisticas/sociais/populacao/9127-pesquisa-nacional-por-amostra-de-domicilios.html?=&t=microdados
+
+The microdata page contains a separate folder for each survey year.
+
+Each annual folder includes a ZIP file containing the survey data and the corresponding documentation required to identify variables and reproduce analyses.
+
+Researchers interested in historical food insecurity estimates should consult the documentation for the 2004, 2009, and 2013 survey rounds, which include the EBIA module.
+
+## Alternative Data Source: Household Budget Survey (POF)
+
+Food insecurity information is also available in the Brazilian Household Budget Survey (POF – *Pesquisa de Orçamentos Familiares*), conducted by IBGE.
+
+The POF collects detailed information on household expenditures, income, living conditions, food consumption, nutrition, and food security. It is one of the main data sources used to study household living conditions in Brazil.
+
+More information about the survey is available at:
+
+* https://www.ibge.gov.br/estatisticas/sociais/populacao/24786-pesquisa-de-orcamentos-familiares-2.html?edicao=37681&t=o-que-e
+
+According to the IBGE report on food insecurity, EBIA information is available in the POF 2017–2018. The most recent POF (2024–2025) has been conducted, but its microdata were not yet available at the time this document was prepared.
+
+## Accessing POF Microdata
+
+POF microdata can be accessed through:
+
+* https://www.ibge.gov.br/estatisticas/sociais/populacao/24786-pesquisa-de-orcamentos-familiares-2.html?edicao=37681&t=microdados
+
+The most relevant section for researchers is **Dados, Documentação e Leia-me**.
+
+These materials allow users to identify household characteristics, demographic information, socioeconomic indicators, and food security variables available in the survey.

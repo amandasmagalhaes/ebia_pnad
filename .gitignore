@@ -1,0 +1,14 @@
+# Quarto
+_freeze/
+.quarto/
+index_cache/
+index_files/
+
+# Data
+*.dta
+*.csv
+*.RData
+
+# Outros
+/.quarto/
+**/*.quarto_ipynb
