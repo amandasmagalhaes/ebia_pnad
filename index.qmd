@@ -132,19 +132,19 @@ packageVersion("survey")
 #| label: Download Data
 #| code-summary: Download Data
 
-# Download PNAD Continuous data for the 4th quarter of 2023
-pnad_2023 <- get_pnadc(
-  year = 2023,
-  topic = 4,
-  design = FALSE
-)
+# # Download PNAD Continuous data for the 4th quarter of 2023
+# pnad_2023 <- get_pnadc(
+#   year = 2023,
+#   topic = 4,
+#   design = FALSE
+# )
 
-# Download PNAD Continuous data for the 4th quarter of 2024
-pnad_2024 <- get_pnadc(
-  year = 2024,
-  topic = 4,
-  design = FALSE
-)
+# # Download PNAD Continuous data for the 4th quarter of 2024
+# pnad_2024 <- get_pnadc(
+#   year = 2024,
+#   topic = 4,
+#   design = FALSE
+# )
 ```
 
 ```{r}
@@ -175,12 +175,39 @@ list(
 )
 ```
 
+```{r}
+#| label: Food Security Distribution
+#| code-summary: Food Security Distribution
 
+# Create frequency tables for food security categories
 
+food_security_2023 <- pnad_2023 %>%
+  count(SD17001) %>%
+  mutate(
+    Year = 2023,
+    Percent = round(100 * n / sum(n), 1)
+  )
 
+food_security_2024 <- pnad_2024 %>%
+  count(SD17001) %>%
+  mutate(
+    Year = 2024,
+    Percent = round(100 * n / sum(n), 1)
+  )
 
+food_security_distribution <- bind_rows(
+  food_security_2023,
+  food_security_2024
+) %>%
+  select(
+    Year,
+    SD17001,
+    n,
+    Percent
+  )
 
-
+food_security_distribution
+```
 
 ## Historical Data Source: National Household Sample Survey (PNAD)
 
