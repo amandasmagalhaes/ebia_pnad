@@ -3,7 +3,6 @@ _freeze/
 .quarto/
 data
 index_cache/
-index_files/
 
 # Data
 *.dta
