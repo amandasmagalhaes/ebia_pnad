@@ -7,7 +7,7 @@ date: today
 
 # Data Source and Identification of Food Insecurity Variables
 
-## About PNAD Continuous
+## PNAD Continuous
 
 The Continuous National Household Sample Survey (PNAD Continuous) is a nationwide household survey conducted by the Brazilian Institute of Geography and Statistics (IBGE). It provides information on demographic, social, and economic characteristics of the Brazilian population.
 
@@ -15,13 +15,13 @@ More information about the survey is available at:
 
 * https://www.ibge.gov.br/estatisticas/sociais/saude/17270-pnad-continua?=&t=o-que-e
 
-## Accessing the Documentation
+### Accessing the Documentation
 
 To identify food insecurity variables, we accessed the PNAD Continuous microdata page:
 
 * https://www.ibge.gov.br/estatisticas/sociais/saude/17270-pnad-continua?=&t=microdados
 
-Within the **Concentrados em determinado trimestre** section, the following documents were consulted:
+Within the **Microdados da Divulgação Anual** and then **Concentrados em determinado trimestre** section, the following documents were consulted:
 
 * `LEIA-ME.pdf`
 * `PNADC_Pesquisas_Suplementares_Anuais_20260508.pdf`
@@ -34,7 +34,7 @@ and consulted:
 
 * `dicionario_PNADC_microdados_trimestre4_20251010.xls`
 
-## Food Security Module
+### Food Security Module
 
 According to the supplementary survey documentation, the Food Security module was collected only in the fourth quarter of:
 
@@ -56,7 +56,7 @@ Responses are coded as:
 * 1 = Yes
 * 2 = No
 
-## Official Food Insecurity Variable
+### Food Insecurity Variable
 
 In addition to the individual questionnaire items, IBGE provides a derived variable containing the final food security classification:
 
@@ -75,7 +75,7 @@ Categories:
 
 For most analyses, `SD17001` can be used directly, as it contains the official EBIA classification produced by IBGE.
 
-## Using the `PNADcIBGE` R Package
+### Using the `PNADcIBGE` R Package
 
 The `PNADcIBGE` package provides direct access to official PNAD Continuous microdata from IBGE.
 
@@ -148,12 +148,41 @@ packageVersion("survey")
 ```
 
 ```{r}
-#| label: Inspect Objects
-#| code-summary: Inspect Objects
+#| label: Save Data
+#| code-summary: Save Data
 
-# Display the structure of the downloaded objects
-str(pnad_2023, max.level = 1)
-str(pnad_2024, max.level = 1)
+# # Create a local directory to store downloaded datasets
+# dir.create(
+#   "data",
+#   showWarnings = FALSE
+# )
+
+# # Save datasets as RDS files for future use
+# saveRDS(
+#   pnad_2023,
+#   "data/pnad_2023.rds"
+# )
+
+# saveRDS(
+#   pnad_2024,
+#   "data/pnad_2024.rds"
+# )
+```
+
+```{r}
+#| label: Load Data
+#| code-summary: Load Data
+#| cache: false
+
+# Load previously saved datasets
+
+pnad_2023 <- readRDS(
+  "data/pnad_2023.rds"
+)
+
+pnad_2024 <- readRDS(
+  "data/pnad_2024.rds"
+)
 ```
 
 ```{r}
@@ -209,7 +238,73 @@ food_security_distribution <- bind_rows(
 food_security_distribution
 ```
 
-## Historical Data Source: National Household Sample Survey (PNAD)
+```{r}
+#| label: Capital Status Distribution
+#| code-summary: Capital Status Distribution
+
+# Plot the distribution of observations located in state capitals
+# versus all other municipalities
+
+bind_rows(
+  pnad_2023 %>% mutate(Year = "2023"),
+  pnad_2024 %>% mutate(Year = "2024")
+) %>%
+  mutate(
+    CapitalStatus = if_else(
+      is.na(Capital),
+      "Other municipalities",
+      "State capitals"
+    )
+  ) %>%
+  count(Year, CapitalStatus) %>%
+  group_by(Year) %>%
+  mutate(
+    Percent = 100 * n / sum(n),
+    Label = paste0(
+      scales::comma(n),
+      " (",
+      round(Percent, 1),
+      "%)"
+    )
+  ) %>%
+  ungroup() %>%
+  ggplot(
+    aes(
+      x = CapitalStatus,
+      y = n
+    )
+  ) +
+  geom_col(
+    fill = "steelblue"
+  ) +
+  geom_text(
+    aes(label = Label),
+    vjust = -0.3,
+    size = 4
+  ) +
+  facet_wrap(~Year) +
+  scale_y_continuous(
+    labels = scales::comma,
+    expand = expansion(mult = c(0, 0.1))
+  ) +
+  labs(
+    title = "Distribution of Observations by Capital Status \n",
+    x = NULL,
+    y = "Number of observations \n"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      hjust = 0.5
+    ),
+    strip.text = element_text(
+      face = "bold"
+    )
+  )
+```
+
+## PNAD
 
 Before the implementation of PNAD Continuous, IBGE conducted the National Household Sample Survey (PNAD), an annual household survey that collected demographic, social, and economic information on the Brazilian population.
 
@@ -219,9 +314,7 @@ More information about the survey is available at:
 
 The annual PNAD was discontinued in 2016 and replaced by PNAD Continuous. However, historical PNAD microdata remain available and are frequently used for long-term analyses and historical comparisons.
 
-For studies on food insecurity, the PNAD is particularly relevant because the EBIA was collected in selected survey rounds, including 2004, 2009, and 2013.
-
-## Accessing PNAD Microdata
+### Accessing PNAD Microdata
 
 Historical PNAD microdata can be accessed through:
 
@@ -233,11 +326,9 @@ Each annual folder includes a ZIP file containing the survey data and the corres
 
 Researchers interested in historical food insecurity estimates should consult the documentation for the 2004, 2009, and 2013 survey rounds, which include the EBIA module.
 
-## Alternative Data Source: Household Budget Survey (POF)
+## POF
 
-Food insecurity information is also available in the Brazilian Household Budget Survey (POF – *Pesquisa de Orçamentos Familiares*), conducted by IBGE.
-
-The POF collects detailed information on household expenditures, income, living conditions, food consumption, nutrition, and food security. It is one of the main data sources used to study household living conditions in Brazil.
+Food insecurity information is also available in the Brazilian Household Budget Survey (POF), conducted by IBGE.
 
 More information about the survey is available at:
 
@@ -245,12 +336,10 @@ More information about the survey is available at:
 
 According to the IBGE report on food insecurity, EBIA information is available in the POF 2017–2018. The most recent POF (2024–2025) has been conducted, but its microdata were not yet available at the time this document was prepared.
 
-## Accessing POF Microdata
+### Accessing POF Microdata
 
 POF microdata can be accessed through:
 
 * https://www.ibge.gov.br/estatisticas/sociais/populacao/24786-pesquisa-de-orcamentos-familiares-2.html?edicao=37681&t=microdados
 
 The most relevant section for researchers is **Dados, Documentação e Leia-me**.
-
-These materials allow users to identify household characteristics, demographic information, socioeconomic indicators, and food security variables available in the survey.

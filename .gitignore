@@ -1,6 +1,7 @@
 # Quarto
 _freeze/
 .quarto/
+data
 index_cache/
 index_files/
 
